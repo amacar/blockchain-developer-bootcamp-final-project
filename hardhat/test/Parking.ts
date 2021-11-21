@@ -14,8 +14,15 @@ const ERRORS = {
   },
   CHANGE_PRICE: { ONLY_OWNER },
   CANCEL_TICKET: { ONLY_BUYER },
-  TRANSFER_TICKET: { ONLY_BUYER, ACTIVE_SUB: "You cannot transfer ticket to a plate with active subscription" },
-  WITHDRAW: { ONLY_OWNER, BALANCE_TOO_LOW: "Contract's balance too low to withdraw such amount" },
+  TRANSFER_TICKET: {
+    ONLY_BUYER,
+    ACTIVE_SUB:
+      "You cannot transfer ticket to a plate with active subscription",
+  },
+  WITHDRAW: {
+    ONLY_OWNER,
+    BALANCE_TOO_LOW: "Contract's balance too low to withdraw such amount",
+  },
 };
 
 describe("Parking", function () {
@@ -25,7 +32,10 @@ describe("Parking", function () {
 
   beforeEach(async function () {
     accounts = await ethers.getSigners();
-    const parkingFactory = (await ethers.getContractFactory("Parking", accounts[0])) as Parking__factory;
+    const parkingFactory = (await ethers.getContractFactory(
+      "Parking",
+      accounts[0]
+    )) as Parking__factory;
     parkingContract = await parkingFactory.deploy();
   });
 
@@ -44,12 +54,18 @@ describe("Parking", function () {
   describe("Buy ticket", function () {
     it("Should allow ticket purchase if none existing yet", async function () {
       const zone = 0;
-      const isTicketValidBeforeBuy = await parkingContract.isTicketValid(plateNum, zone);
+      const isTicketValidBeforeBuy = await parkingContract.isTicketValid(
+        plateNum,
+        zone
+      );
       const zoneAPrice = await parkingContract.zonePricePerMinute(zone);
       const numOfMins = 5;
       const value = zoneAPrice.mul(numOfMins);
       await parkingContract.buyTicket(plateNum, numOfMins, 0, { value });
-      const isTicketValidAfterBuy = await parkingContract.isTicketValid(plateNum, zone);
+      const isTicketValidAfterBuy = await parkingContract.isTicketValid(
+        plateNum,
+        zone
+      );
 
       expect(isTicketValidBeforeBuy).to.be.false;
       expect(isTicketValidAfterBuy).to.be.true;
@@ -77,9 +93,9 @@ describe("Parking", function () {
       const zoneAPrice = await parkingContract.zonePricePerMinute(0);
       const numOfMins = 5;
       const value = zoneAPrice.mul(numOfMins);
-      expect(parkingContract.buyTicket(plateNum, numOfMins + 1, 0, { value })).eventually.to.be.rejectedWith(
-        ERRORS.BUY_TICKET.AMOUNT_NOT_SUFFICIENT
-      );
+      expect(
+        parkingContract.buyTicket(plateNum, numOfMins + 1, 0, { value })
+      ).eventually.to.be.rejectedWith(ERRORS.BUY_TICKET.AMOUNT_NOT_SUFFICIENT);
     });
 
     it("Should throw an error if trying to prolong existing ticket in other zone", async function () {
@@ -88,9 +104,9 @@ describe("Parking", function () {
       const value = zoneAPrice.mul(numOfMins);
       await parkingContract.buyTicket(plateNum, numOfMins, 0, { value });
 
-      expect(parkingContract.buyTicket(plateNum, numOfMins, 1, { value })).eventually.to.be.rejectedWith(
-        ERRORS.BUY_TICKET.WRONG_ZONE
-      );
+      expect(
+        parkingContract.buyTicket(plateNum, numOfMins, 1, { value })
+      ).eventually.to.be.rejectedWith(ERRORS.BUY_TICKET.WRONG_ZONE);
     });
 
     it("Should throw an error if user try to buy a ticket but the contract is paused", async function () {
@@ -98,9 +114,9 @@ describe("Parking", function () {
       const zoneAPrice = await parkingContract.zonePricePerMinute(0);
       const numOfMins = 5;
       const value = zoneAPrice.mul(numOfMins);
-      expect(parkingContract.buyTicket(plateNum, numOfMins + 1, 0, { value })).eventually.to.be.rejectedWith(
-        ERRORS.BUY_TICKET.PAUSED
-      );
+      expect(
+        parkingContract.buyTicket(plateNum, numOfMins + 1, 0, { value })
+      ).eventually.to.be.rejectedWith(ERRORS.BUY_TICKET.PAUSED);
     });
   });
 
@@ -109,15 +125,17 @@ describe("Parking", function () {
       const zone = 0;
       const newPrice = 1;
       await parkingContract.changePrice(newPrice, zone);
-      const zonePriceAfterChange = await parkingContract.zonePricePerMinute(zone);
+      const zonePriceAfterChange = await parkingContract.zonePricePerMinute(
+        zone
+      );
 
       expect(zonePriceAfterChange).to.equal(newPrice);
     });
 
     it("Should throw an error if non contract owner tries to change price", async function () {
-      expect(parkingContract.connect(accounts[1]).changePrice(0, 0)).eventually.to.be.rejectedWith(
-        ERRORS.CHANGE_PRICE.ONLY_OWNER
-      );
+      expect(
+        parkingContract.connect(accounts[1]).changePrice(0, 0)
+      ).eventually.to.be.rejectedWith(ERRORS.CHANGE_PRICE.ONLY_OWNER);
     });
   });
 
@@ -137,19 +155,25 @@ describe("Parking", function () {
       const balanceBeforeWithdrawing = await web3.eth.getBalance(from);
       const cancelTicketCall = await parkingContract.cancelTicket(plateNum);
       const isTicketValid = await parkingContract.isTicketValid(plateNum, zone);
-      const { gasUsed } = await web3.eth.getTransactionReceipt(cancelTicketCall.hash);
+      const { gasUsed } = await web3.eth.getTransactionReceipt(
+        cancelTicketCall.hash
+      );
       const txFee = cancelTicketCall.gasPrice!.mul(gasUsed);
       const balanceAfterWithdrawing = await web3.eth.getBalance(from);
-      const balanceBeforeWithoutFee = ethers.BigNumber.from(balanceBeforeWithdrawing).sub(txFee);
+      const balanceBeforeWithoutFee = ethers.BigNumber.from(
+        balanceBeforeWithdrawing
+      ).sub(txFee);
       const valueLeft = zoneAPrice
         .mul(numOfMins - 2)
         .mul(9)
         .div(10); // 2 minutes less and only 90%
 
       expect(isTicketValid).to.be.false;
-      expect(ethers.BigNumber.from(balanceAfterWithdrawing).sub(balanceBeforeWithoutFee).toString()).to.equal(
-        valueLeft.toString()
-      );
+      expect(
+        ethers.BigNumber.from(balanceAfterWithdrawing)
+          .sub(balanceBeforeWithoutFee)
+          .toString()
+      ).to.equal(valueLeft.toString());
     });
 
     it("Should throw an error if non ticket buyer tries to cancel ticket", async function () {
@@ -157,9 +181,9 @@ describe("Parking", function () {
       const numOfMins = 5;
       const value = zoneAPrice.mul(numOfMins);
       await parkingContract.buyTicket(plateNum, numOfMins, 0, { value });
-      expect(parkingContract.connect(accounts[1]).cancelTicket(plateNum)).eventually.to.be.rejectedWith(
-        ERRORS.CANCEL_TICKET.ONLY_BUYER
-      );
+      expect(
+        parkingContract.connect(accounts[1]).cancelTicket(plateNum)
+      ).eventually.to.be.rejectedWith(ERRORS.CANCEL_TICKET.ONLY_BUYER);
     });
   });
 
@@ -174,13 +198,21 @@ describe("Parking", function () {
       await parkingContract.buyTicket(plateNum, numOfMins, zone, { value });
       await parkingContract.transferTicket(plateNum, newPlateNum, newOwner);
 
-      const isTicketValid = await parkingContract.isTicketValid(newPlateNum, zone);
+      const isTicketValid = await parkingContract.isTicketValid(
+        newPlateNum,
+        zone
+      );
       expect(isTicketValid).to.be.true;
       // expect error if old owner try to cancel the ticket
-      expect(parkingContract.cancelTicket(newPlateNum)).eventually.to.be.rejectedWith(ERRORS.CANCEL_TICKET.ONLY_BUYER);
+      expect(
+        parkingContract.cancelTicket(newPlateNum)
+      ).eventually.to.be.rejectedWith(ERRORS.CANCEL_TICKET.ONLY_BUYER);
       // new owner can cancel the ticket
       await parkingContract.connect(accounts[1]).cancelTicket(newPlateNum);
-      const isTicketValidAfterCancel = await parkingContract.isTicketValid(newPlateNum, zone);
+      const isTicketValidAfterCancel = await parkingContract.isTicketValid(
+        newPlateNum,
+        zone
+      );
       expect(isTicketValidAfterCancel).to.be.false;
     });
 
@@ -191,10 +223,12 @@ describe("Parking", function () {
       const newPlateNum = "newPlate";
       const newOwner = await accounts[1].getAddress();
       await parkingContract.buyTicket(plateNum, numOfMins, 0, { value });
-      await parkingContract.connect(accounts[1]).buyTicket(newPlateNum, numOfMins, 0, { value });
-      expect(parkingContract.transferTicket(plateNum, newPlateNum, newOwner)).eventually.to.be.rejectedWith(
-        ERRORS.TRANSFER_TICKET.ACTIVE_SUB
-      );
+      await parkingContract
+        .connect(accounts[1])
+        .buyTicket(newPlateNum, numOfMins, 0, { value });
+      expect(
+        parkingContract.transferTicket(plateNum, newPlateNum, newOwner)
+      ).eventually.to.be.rejectedWith(ERRORS.TRANSFER_TICKET.ACTIVE_SUB);
     });
 
     it("Should throw an error if non ticket buyer tries to transfer ticket", async function () {
@@ -205,7 +239,9 @@ describe("Parking", function () {
       const newOwner = await accounts[1].getAddress();
       await parkingContract.buyTicket(plateNum, numOfMins, 0, { value });
       expect(
-        parkingContract.connect(accounts[1]).transferTicket(plateNum, newPlateNum, newOwner)
+        parkingContract
+          .connect(accounts[1])
+          .transferTicket(plateNum, newPlateNum, newOwner)
       ).eventually.to.be.rejectedWith(ERRORS.TRANSFER_TICKET.ONLY_BUYER);
     });
   });
@@ -217,16 +253,22 @@ describe("Parking", function () {
       const value = zoneAPrice.mul(numOfMins);
       const from = await accounts[0].getAddress();
       await parkingContract.buyTicket(plateNum, numOfMins, 0, { value });
-      expect(await web3.eth.getBalance(parkingContract.address)).to.equal(value.toString());
+      expect(await web3.eth.getBalance(parkingContract.address)).to.equal(
+        value.toString()
+      );
 
       const balanceBeforeWithdrawing = await web3.eth.getBalance(from);
       const withdrawCall = await parkingContract.withdraw(value);
-      const { gasUsed } = await web3.eth.getTransactionReceipt(withdrawCall.hash);
+      const { gasUsed } = await web3.eth.getTransactionReceipt(
+        withdrawCall.hash
+      );
       const txFee = withdrawCall.gasPrice!.mul(gasUsed);
       const balanceAfterWithdrawing = await web3.eth.getBalance(from);
 
       expect(await web3.eth.getBalance(parkingContract.address)).to.equal("0");
-      expect(value.add(balanceBeforeWithdrawing).sub(txFee)).to.equal(balanceAfterWithdrawing);
+      expect(value.add(balanceBeforeWithdrawing).sub(txFee)).to.equal(
+        balanceAfterWithdrawing
+      );
     });
 
     it("Should throw an error if trying to withdraw more funds that are in contract", async function () {
@@ -235,13 +277,15 @@ describe("Parking", function () {
       const value = zoneAPrice.mul(numOfMins);
       await parkingContract.buyTicket(plateNum, numOfMins, 0, { value });
 
-      expect(parkingContract.withdraw(value.add(1))).eventually.to.be.rejectedWith(ERRORS.WITHDRAW.BALANCE_TOO_LOW);
+      expect(
+        parkingContract.withdraw(value.add(1))
+      ).eventually.to.be.rejectedWith(ERRORS.WITHDRAW.BALANCE_TOO_LOW);
     });
 
     it("Should throw an error if non contract owner tries to withdraw funds", async function () {
-      expect(parkingContract.connect(accounts[1]).withdraw(1)).eventually.to.be.rejectedWith(
-        ERRORS.WITHDRAW.ONLY_OWNER
-      );
+      expect(
+        parkingContract.connect(accounts[1]).withdraw(1)
+      ).eventually.to.be.rejectedWith(ERRORS.WITHDRAW.ONLY_OWNER);
     });
   });
 });
