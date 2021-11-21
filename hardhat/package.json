@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
+        "compile": "hardhat compile",
         "test": "hardhat test",
         "lint": "tslint --fix --config tslint.json --project tsconfig.json && solhint contracts/**/*.sol",
         "format": "prettier --write \"**/*.{ts,js,sol}\""
