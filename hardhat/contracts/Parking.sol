@@ -4,6 +4,9 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+/// @title Parking contract
+/// @author Amadej Pevec
+/// @notice A contract that allows buying/canceling/transfering parking tickets and verify if tickets are valid. Owner can withdraw funds.
 contract Parking is Ownable, Pausable {
     enum ParkingZone {
         A,
@@ -20,6 +23,8 @@ contract Parking is Ownable, Pausable {
     mapping(ParkingZone => uint256) public zonePricePerMinute;
     mapping(string => ParkingTicket) private parkingTickets;
 
+    /// @notice Check if owner of a ticket is trying to modify it
+    /// @param plate The plate of a car that bought a ticket
     modifier isBuyer(string memory plate) {
         require(
             msg.sender == parkingTickets[plate].buyer,
@@ -34,6 +39,10 @@ contract Parking is Ownable, Pausable {
         zonePricePerMinute[ParkingZone.C] = 0.00001 ether;
     }
 
+    /// @notice Function that allows buying parking ticket or proloning an existing one. Can be called if the contract is not paused.
+    /// @param plate The plate of a car
+    /// @param numOfMinutes The duration of a parking ticket (in minutes)
+    /// @param zone The zone in which a user parked a car (one from ParkingZone enum)
     function buyTicket(
         string memory plate,
         uint256 numOfMinutes,
@@ -60,10 +69,17 @@ contract Parking is Ownable, Pausable {
         }
     }
 
+    /// @notice Function to change the parking price of a zone. Can be called by contract owner only.
+    /// @param price Price per minute
+    /// @param zone The zone for which owner want to set a price (one from ParkingZone enum)
     function changePrice(uint256 price, ParkingZone zone) external onlyOwner {
         zonePricePerMinute[zone] = price;
     }
 
+    /// @notice Check if ticket is valid based on the plate and zone
+    /// @param plate The plate of a car
+    /// @param zone The zone in which the car is parked
+    /// @return bool - Return ticket validity
     function isTicketValid(string memory plate, ParkingZone zone)
         public
         view
@@ -74,6 +90,9 @@ contract Parking is Ownable, Pausable {
             parkingTickets[plate].expirationTime > block.timestamp;
     }
 
+    /// @notice Get ticket information
+    /// @param plate The plate of a car
+    /// @return tuple(Ticket expiration time, zone)
     function getTicket(string memory plate)
         external
         view
@@ -85,6 +104,9 @@ contract Parking is Ownable, Pausable {
         );
     }
 
+    /// @notice Function to cancel ticket and get back remaining funds. Can be called by ticket owner only.
+    /// @dev User get back only 90% of remaining funds
+    /// @param plate The plate of a car
     function cancelTicket(string memory plate) external isBuyer(plate) {
         ParkingTicket storage ticket = parkingTickets[plate];
         uint256 minLeft = (ticket.expirationTime - block.timestamp) / 60;
@@ -98,6 +120,10 @@ contract Parking is Ownable, Pausable {
         }
     }
 
+    /// @notice Transfer ticket to other owner and car plate. Can be called by ticket owner only.
+    /// @param oldPlate The plate user want to transfer
+    /// @param newPlate Plate of a car where the ticket will be transfered to
+    /// @param newOwner New owner of a ticket (address)
     function transferTicket(
         string memory oldPlate,
         string memory newPlate,
@@ -117,14 +143,18 @@ contract Parking is Ownable, Pausable {
         delete parkingTickets[oldPlate];
     }
 
+    /// @notice Function to pause the contract. Can be called by contract owner only.
     function pause() external onlyOwner {
         _pause();
     }
 
+    /// @notice Function to unpause the contract. Can be called by contract owner only.
     function unpause() external onlyOwner {
         _unpause();
     }
 
+    /// @notice Function to withdraw ether from the contract. Can be called by contract owner only.
+    /// @param value Amount of ether that user want to withdraw
     function withdraw(uint256 value) external onlyOwner {
         require(
             value <= address(this).balance,
