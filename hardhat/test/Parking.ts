@@ -9,7 +9,7 @@ const ONLY_BUYER = "Only ticket owner can modify it";
 const ERRORS = {
   BUY_TICKET: {
     AMOUNT_NOT_SUFFICIENT: "Amount is not sufficient",
-    WRONG_ZONE: "You are trying to buy ticket for other parking zone",
+    WRONG_ZONE: "You are trying to renew ticket for other parking zone",
     PAUSED: "Pausable: paused",
   },
   CHANGE_PRICE: { ONLY_OWNER },

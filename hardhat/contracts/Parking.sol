@@ -23,6 +23,20 @@ contract Parking is Ownable, Pausable {
     mapping(ParkingZone => uint256) public zonePricePerMinute;
     mapping(string => ParkingTicket) private parkingTickets;
 
+    event LogTicketBought(
+        string indexed plate,
+        uint256 numOfMinutes,
+        ParkingZone zone
+    );
+    event LogTicketRenewed(
+        string indexed plate,
+        uint256 numOfMinutes,
+        ParkingZone zone
+    );
+    event LogTicketCanceled(string indexed plate);
+    event LogTicketTransfered(string indexed oldPlate, string newPlate);
+    event LogZonePriceChanged(uint256 price, ParkingZone zone);
+
     /// @notice Check if owner of a ticket is trying to modify it
     /// @param plate The plate of a car that bought a ticket
     modifier isBuyer(string memory plate) {
@@ -60,12 +74,14 @@ contract Parking is Ownable, Pausable {
         if (ticket.expirationTime > block.timestamp) {
             require(
                 ticket.zone == zone,
-                "You are trying to buy ticket for other parking zone"
+                "You are trying to renew ticket for other parking zone"
             );
             ticket.expirationTime = ticket.expirationTime + duration;
+            emit LogTicketRenewed(plate, numOfMinutes, zone);
         } else {
             uint256 expiration = block.timestamp + duration;
             parkingTickets[plate] = ParkingTicket(expiration, msg.sender, zone);
+            emit LogTicketBought(plate, numOfMinutes, zone);
         }
     }
 
@@ -74,6 +90,7 @@ contract Parking is Ownable, Pausable {
     /// @param zone The zone for which owner want to set a price (one from ParkingZone enum)
     function changePrice(uint256 price, ParkingZone zone) external onlyOwner {
         zonePricePerMinute[zone] = price;
+        emit LogZonePriceChanged(price, zone);
     }
 
     /// @notice Check if ticket is valid based on the plate and zone
@@ -117,6 +134,7 @@ contract Parking is Ownable, Pausable {
             delete parkingTickets[plate];
             (bool succeed, ) = msg.sender.call{value: balanceLeft}("");
             require(succeed, "Failed to withdraw Ether");
+            emit LogTicketCanceled(plate);
         }
     }
 
@@ -141,6 +159,7 @@ contract Parking is Ownable, Pausable {
             old.zone
         );
         delete parkingTickets[oldPlate];
+        emit LogTicketTransfered(oldPlate, newPlate);
     }
 
     /// @notice Function to pause the contract. Can be called by contract owner only.
