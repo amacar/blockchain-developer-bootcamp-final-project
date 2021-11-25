@@ -88,7 +88,10 @@ contract Parking is Ownable, Pausable {
     /// @notice Function to change the parking price of a zone. Can be called by contract owner only.
     /// @param price Price per minute
     /// @param zone The zone for which owner want to set a price (one from ParkingZone enum)
-    function changePrice(uint256 price, ParkingZone zone) external onlyOwner {
+    function changeZonePrice(uint256 price, ParkingZone zone)
+        external
+        onlyOwner
+    {
         zonePricePerMinute[zone] = price;
         emit LogZonePriceChanged(price, zone);
     }

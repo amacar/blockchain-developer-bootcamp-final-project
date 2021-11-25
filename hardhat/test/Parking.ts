@@ -124,7 +124,7 @@ describe("Parking", function () {
     it("Should change price of the zone", async function () {
       const zone = 0;
       const newPrice = 1;
-      await parkingContract.changePrice(newPrice, zone);
+      await parkingContract.changeZonePrice(newPrice, zone);
       const zonePriceAfterChange = await parkingContract.zonePricePerMinute(
         zone
       );
@@ -134,7 +134,7 @@ describe("Parking", function () {
 
     it("Should throw an error if non contract owner tries to change price", async function () {
       expect(
-        parkingContract.connect(accounts[1]).changePrice(0, 0)
+        parkingContract.connect(accounts[1]).changeZonePrice(0, 0)
       ).eventually.to.be.rejectedWith(ERRORS.CHANGE_PRICE.ONLY_OWNER);
     });
   });
