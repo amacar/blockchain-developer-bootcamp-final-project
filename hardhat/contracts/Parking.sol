@@ -139,7 +139,7 @@ contract Parking is Ownable, Pausable {
             10; // get back 90% of funds
         delete parkingTickets[plate];
         (bool succeed, ) = msg.sender.call{value: balanceLeft}("");
-        require(succeed, "Failed to withdraw Ether");
+        require(succeed, "Failed to return funds");
         emit LogTicketCanceled(plate);
     }
 
