@@ -13,7 +13,7 @@ const ERRORS = {
     PAUSED: "Pausable: paused",
   },
   CHANGE_PRICE: { ONLY_OWNER },
-  CANCEL_TICKET: { ONLY_BUYER },
+  CANCEL_TICKET: { ONLY_BUYER, EXPIRED: "The ticket has already expired" },
   TRANSFER_TICKET: {
     ONLY_BUYER,
     ACTIVE_SUB:
@@ -71,7 +71,7 @@ describe("Parking", function () {
       expect(isTicketValidAfterBuy).to.be.true;
     });
 
-    it("Should allow to prolong existing ticket expiration", async function () {
+    it("Should allow to extend existing ticket expiration", async function () {
       const zone = 0;
       const zoneAPrice = await parkingContract.zonePricePerMinute(zone);
       const numOfMins = 5;
@@ -98,7 +98,7 @@ describe("Parking", function () {
       ).eventually.to.be.rejectedWith(ERRORS.BUY_TICKET.AMOUNT_NOT_SUFFICIENT);
     });
 
-    it("Should throw an error if trying to prolong existing ticket in other zone", async function () {
+    it("Should throw an error if trying to extend existing ticket in other zone", async function () {
       const zoneAPrice = await parkingContract.zonePricePerMinute(0);
       const numOfMins = 5;
       const value = zoneAPrice.mul(numOfMins);
@@ -184,6 +184,22 @@ describe("Parking", function () {
       expect(
         parkingContract.connect(accounts[1]).cancelTicket(plateNum)
       ).eventually.to.be.rejectedWith(ERRORS.CANCEL_TICKET.ONLY_BUYER);
+    });
+
+    it("Should throw an error if trying to cancel expired ticket", async function () {
+      const zoneAPrice = await parkingContract.zonePricePerMinute(0);
+      const numOfMins = 5;
+      const value = zoneAPrice.mul(numOfMins);
+      await parkingContract.buyTicket(plateNum, numOfMins, 0, { value });
+
+      // go forward in time for numOfMins minutes
+      const forwardMins = numOfMins * 60;
+      await ethers.provider.send("evm_increaseTime", [forwardMins]);
+      await ethers.provider.send("evm_mine", []);
+
+      expect(
+        parkingContract.cancelTicket(plateNum)
+      ).eventually.to.be.rejectedWith(ERRORS.CANCEL_TICKET.EXPIRED);
     });
   });
 

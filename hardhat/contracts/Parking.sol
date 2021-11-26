@@ -53,7 +53,7 @@ contract Parking is Ownable, Pausable {
         zonePricePerMinute[ParkingZone.C] = 0.00001 ether;
     }
 
-    /// @notice Function that allows buying parking ticket or proloning an existing one. Can be called if the contract is not paused.
+    /// @notice Function that allows buying parking ticket or extending an existing one. Can be called if the contract is not paused.
     /// @param plate The plate of a car
     /// @param numOfMinutes The duration of a parking ticket (in minutes)
     /// @param zone The zone in which a user parked a car (one from ParkingZone enum)
@@ -70,7 +70,7 @@ contract Parking is Ownable, Pausable {
         ParkingTicket storage ticket = parkingTickets[plate];
         uint256 duration = numOfMinutes * 1 minutes;
 
-        // if ticket not expired yet, then prolong it
+        // if ticket not expired yet, then extend it
         if (ticket.expirationTime > block.timestamp) {
             require(
                 ticket.zone == zone,
@@ -129,16 +129,18 @@ contract Parking is Ownable, Pausable {
     /// @param plate The plate of a car
     function cancelTicket(string memory plate) external isBuyer(plate) {
         ParkingTicket storage ticket = parkingTickets[plate];
-        uint256 minLeft = (ticket.expirationTime - block.timestamp) / 60;
-        uint256 balanceLeft = (minLeft * zonePricePerMinute[ticket.zone] * 9) /
-            10; // get back 90% of funds
+        require(
+            ticket.expirationTime > block.timestamp,
+            "The ticket has already expired"
+        );
 
-        if (balanceLeft > 0) {
-            delete parkingTickets[plate];
-            (bool succeed, ) = msg.sender.call{value: balanceLeft}("");
-            require(succeed, "Failed to withdraw Ether");
-            emit LogTicketCanceled(plate);
-        }
+        uint256 minsLeft = (ticket.expirationTime - block.timestamp) / 60;
+        uint256 balanceLeft = (minsLeft * zonePricePerMinute[ticket.zone] * 9) /
+            10; // get back 90% of funds
+        delete parkingTickets[plate];
+        (bool succeed, ) = msg.sender.call{value: balanceLeft}("");
+        require(succeed, "Failed to withdraw Ether");
+        emit LogTicketCanceled(plate);
     }
 
     /// @notice Transfer ticket to other owner and car plate. Can be called by ticket owner only.
