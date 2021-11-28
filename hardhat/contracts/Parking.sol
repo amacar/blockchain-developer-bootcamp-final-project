@@ -33,7 +33,7 @@ contract Parking is Ownable, Pausable {
         uint256 numOfMinutes,
         ParkingZone zone
     );
-    event LogTicketCanceled(string indexed plate);
+    event LogTicketCanceled(string indexed plate, uint256 balanceLeft);
     event LogTicketTransfered(string indexed oldPlate, string newPlate);
     event LogZonePriceChanged(uint256 price, ParkingZone zone);
 
@@ -140,7 +140,7 @@ contract Parking is Ownable, Pausable {
         delete parkingTickets[plate];
         (bool succeed, ) = msg.sender.call{value: balanceLeft}("");
         require(succeed, "Failed to return funds");
-        emit LogTicketCanceled(plate);
+        emit LogTicketCanceled(plate, balanceLeft);
     }
 
     /// @notice Transfer ticket to other owner and car plate. Can be called by ticket owner only.
