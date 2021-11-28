@@ -1,8 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { ChainId, Config, DAppProvider } from "@usedapp/core";
+
 import "./index.css";
 import App from "./App";
-import { ChainId, Config, DAppProvider } from "@usedapp/core";
 
 const config: Config = { supportedChains: [ChainId.Rinkeby] };
 
