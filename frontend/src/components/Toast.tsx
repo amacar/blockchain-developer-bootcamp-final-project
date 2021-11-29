@@ -35,7 +35,7 @@ export const Toast: FC<{ tx: TransactionStatus }> = ({ tx }) => {
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           onClose={handleClose}
         >
-          <Alert onClose={handleClose} severity={txStatusToToSeverity(isMining, isSuccess)}>
+          <Alert variant="filled" onClose={handleClose} severity={txStatusToToSeverity(isMining, isSuccess)}>
             {isMining && <div>Sending transaction...</div>}
             {isSuccess && <div>Transaction confirmed...</div>}
             {tx.transaction && tx.chainId && (
