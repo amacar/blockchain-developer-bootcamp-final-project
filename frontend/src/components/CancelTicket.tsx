@@ -2,14 +2,14 @@ import { FC, useState } from "react";
 import { Button, TextField } from "@mui/material";
 
 import { BoxItem } from "./BoxItem";
-import { UseCancelTicket, useCustomContractFunction } from "../hooks/useContractHooks";
+import { useCustomContractFunction } from "../hooks/useContractHooks";
 import { Toast } from "./Toast";
 
 const style = { marginRight: "5px" };
 
 export const CancelTicket: FC = () => {
   const [plate, setPlate] = useState<string>("");
-  const [tx, clearTx, cancelTicket] = useCustomContractFunction<UseCancelTicket>("cancelTicket");
+  const [tx, clearTx, cancelTicket] = useCustomContractFunction("cancelTicket");
 
   const handleCancelTicket = async () => {
     if (!plate) return;

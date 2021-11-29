@@ -2,7 +2,7 @@ import { FC, useState } from "react";
 import { Button, TextField } from "@mui/material";
 
 import { BoxItem } from "./BoxItem";
-import { useCustomContractFunction, UseTransferTicket } from "../hooks/useContractHooks";
+import { useCustomContractFunction } from "../hooks/useContractHooks";
 import { Toast } from "./Toast";
 
 const style = { marginRight: "5px" };
@@ -11,7 +11,7 @@ export const TransferTicket: FC = () => {
   const [oldPlate, setOldPlate] = useState<string>("");
   const [newPlate, setNewPlate] = useState<string>("");
   const [newOwner, setNewOwner] = useState<string>("");
-  const [tx, clearTx, transferTicket] = useCustomContractFunction<UseTransferTicket>("transferTicket");
+  const [tx, clearTx, transferTicket] = useCustomContractFunction("transferTicket");
 
   const handleTransferTicket = async () => {
     if (!oldPlate || !newPlate || !newOwner) return;

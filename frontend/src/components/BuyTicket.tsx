@@ -3,7 +3,7 @@ import { Button, TextField } from "@mui/material";
 
 import { BoxItem } from "./BoxItem";
 import { Zone } from "../constants";
-import { UseBuyTicket, useCustomContractFunction, useGetZonePrice } from "../hooks/useContractHooks";
+import { useCustomContractFunction, useGetZonePrice } from "../hooks/useContractHooks";
 import { ZoneSelect } from "./ZoneSelect";
 import { Toast } from "./Toast";
 
@@ -15,7 +15,7 @@ export const BuyTicket: FC = () => {
   const [duration, setDuration] = useState<number>(60);
   const zonePrice = useGetZonePrice(zone as Zone);
   const totalPrice = zonePrice.mul(duration || 0);
-  const [tx, clearTx, buyTicket] = useCustomContractFunction<UseBuyTicket>("buyTicket");
+  const [tx, clearTx, buyTicket] = useCustomContractFunction("buyTicket");
 
   const handleBuyTicket = async () => {
     if (!plate || !duration || zone === "") return;

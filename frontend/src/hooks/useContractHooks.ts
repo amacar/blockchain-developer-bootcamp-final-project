@@ -32,13 +32,32 @@ export const useGetTicketInfo = (plate: string): { expiration: number; zone: Zon
   return { expiration: expiration ? expiration.toNumber() : undefined, zone };
 };
 
-export type UseSetZonePrice = (price: BigNumber, zone: Zone) => Promise<void>;
-export type UseBuyTicket = (plate: string, duration: number, zone: Zone, value: { value: BigNumber }) => Promise<void>;
-export type UseCancelTicket = (plate: string) => Promise<void>;
-export type UseTransferTicket = (oldPlate: string, newPlate: string, newOwner: string) => Promise<void>;
-export type UseWithdrawType = (amount: BigNumber) => Promise<void>;
+type UseSetZonePrice = (price: BigNumber, zone: Zone) => Promise<void>;
+type UseBuyTicket = (plate: string, duration: number, zone: Zone, value: { value: BigNumber }) => Promise<void>;
+type UseCancelTicket = (plate: string) => Promise<void>;
+type UseTransferTicket = (oldPlate: string, newPlate: string, newOwner: string) => Promise<void>;
+type UseWithdrawType = (amount: BigNumber) => Promise<void>;
 
-export const useCustomContractFunction = <T>(method: string): [TransactionStatus, () => void, T] => {
+type Withdraw = "withdraw";
+type BuyTicket = "buyTicket";
+type CancelTicket = "cancelTicket";
+type SetZonePrice = "changeZonePrice";
+type TransferTicket = "transferTicket";
+type TransactionTypes = Withdraw | BuyTicket | CancelTicket | SetZonePrice | TransferTicket;
+
+type WithdrawOrBuy<T extends TransactionTypes> = T extends Withdraw
+  ? UseWithdrawType
+  : T extends BuyTicket
+  ? UseBuyTicket
+  : T extends SetZonePrice
+  ? UseSetZonePrice
+  : T extends TransferTicket
+  ? UseTransferTicket
+  : UseCancelTicket;
+
+export const useCustomContractFunction = <T extends TransactionTypes>(
+  method: T
+): [TransactionStatus, () => void, WithdrawOrBuy<T>] => {
   const { state, send } = useContract(method);
   const [tx, setTx] = useState(state);
 
@@ -46,5 +65,5 @@ export const useCustomContractFunction = <T>(method: string): [TransactionStatus
     setTx(state);
   }, [state]);
 
-  return [tx, () => setTx({ status: "None" }), send as unknown as T];
+  return [tx, () => setTx({ status: "None" }), send];
 };

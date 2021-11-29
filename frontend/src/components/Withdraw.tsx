@@ -4,7 +4,7 @@ import { parseEther } from "@ethersproject/units";
 import { useEtherBalance } from "@usedapp/core";
 
 import { BoxItem } from "./BoxItem";
-import { useCustomContractFunction, UseWithdrawType } from "../hooks/useContractHooks";
+import { useCustomContractFunction } from "../hooks/useContractHooks";
 import { formatEtherToFixed } from "../utils";
 import { Toast } from "./Toast";
 
@@ -12,7 +12,7 @@ const style = { marginRight: "5px" };
 
 export const Withdraw: FC = () => {
   const [amount, setAmount] = useState<string>("");
-  const [tx, clearTx, withdraw] = useCustomContractFunction<UseWithdrawType>("withdraw");
+  const [tx, clearTx, withdraw] = useCustomContractFunction("withdraw");
   const balance = useEtherBalance(process.env.REACT_APP_CONTRACT_ADDRESS);
 
   const handleWithdraw = async () => {

@@ -4,7 +4,7 @@ import { parseEther } from "@ethersproject/units";
 
 import { BoxItem } from "./BoxItem";
 import { Zone } from "../constants";
-import { useCustomContractFunction, useGetZonePrice, UseSetZonePrice } from "../hooks/useContractHooks";
+import { useCustomContractFunction, useGetZonePrice } from "../hooks/useContractHooks";
 import { ZoneSelect } from "./ZoneSelect";
 import { formatEtherToFixed } from "../utils";
 import { Toast } from "./Toast";
@@ -15,7 +15,7 @@ export const ChangeZonePrice: FC = () => {
   const [zone, setZone] = useState<Zone | string>("");
   const [newPrice, setNewPrice] = useState<string>("");
   const zonePrice = useGetZonePrice(zone as Zone);
-  const [tx, clearTx, setZonePrice] = useCustomContractFunction<UseSetZonePrice>("changeZonePrice");
+  const [tx, clearTx, setZonePrice] = useCustomContractFunction("changeZonePrice");
 
   const handleChangeZonePrice = async () => {
     if (!newPrice || zone === "") return;
