@@ -21,6 +21,7 @@ The project is split into two folders ([hardhat](hardhat) and [frontend](fronten
     ├── frontend/
     │   ├── public/ (HTML page with root element and support files)
     │   ├── src/ (folder with React app)
+    │   ├── .env.example (example environment file)
     │   ├── README.md
     │   └── ...
     ├── hardhat/

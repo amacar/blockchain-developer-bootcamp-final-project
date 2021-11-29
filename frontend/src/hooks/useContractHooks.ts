@@ -27,51 +27,24 @@ export const useGetZonePrice = (zone: Zone): BigNumber => {
   return price || BigNumber.from(0);
 };
 
-export const useSetZonePrice = (): [TransactionStatus, (price: BigNumber, zone: Zone) => Promise<void>] => {
-  const { state, send } = useContract("changeZonePrice");
-  return [state, send];
-};
-
 export const useGetTicketInfo = (plate: string): { expiration: number; zone: Zone } => {
   const [expiration, zone] = useContractFetch("getTicket", [plate]);
   return { expiration: expiration ? expiration.toNumber() : undefined, zone };
 };
 
-export const useBuyTicket = (): [
-  TransactionStatus,
-  (plate: string, duration: number, zone: Zone, value: { value: BigNumber }) => Promise<void>
-] => {
-  const { state, send } = useContract("buyTicket");
-  return [state, send];
-};
+export type UseSetZonePrice = (price: BigNumber, zone: Zone) => Promise<void>;
+export type UseBuyTicket = (plate: string, duration: number, zone: Zone, value: { value: BigNumber }) => Promise<void>;
+export type UseCancelTicket = (plate: string) => Promise<void>;
+export type UseTransferTicket = (oldPlate: string, newPlate: string, newOwner: string) => Promise<void>;
+export type UseWithdrawType = (amount: BigNumber) => Promise<void>;
 
-export const useCancelTicket = (): [TransactionStatus, (plate: string) => Promise<void>] => {
-  const { state, send } = useContract("cancelTicket");
-  return [state, send];
-};
-
-export const useTransferTicket = (): [
-  TransactionStatus,
-  (oldPlate: string, newPlate: string, newOwner: string) => Promise<void>
-] => {
-  const { state, send } = useContract("transferTicket");
-  return [state, send];
-};
-
-export type useWithdrawType = (amount: BigNumber) => Promise<void>;
-
-export const useWithdraw = (): [TransactionStatus, (amount: BigNumber) => Promise<void>] => {
-  const { state, send } = useContract("withdraw");
-  return [state, send];
-};
-
-export const useCustomContractFunction = (f: any): [TransactionStatus, () => void, any] => {
-  const [state, send] = f();
+export const useCustomContractFunction = <T>(method: string): [TransactionStatus, () => void, T] => {
+  const { state, send } = useContract(method);
   const [tx, setTx] = useState(state);
 
   useEffect(() => {
     setTx(state);
   }, [state]);
 
-  return [tx, () => setTx({ status: "None" }), send];
+  return [tx, () => setTx({ status: "None" }), send as unknown as T];
 };

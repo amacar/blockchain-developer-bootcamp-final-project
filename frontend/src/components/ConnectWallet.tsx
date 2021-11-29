@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { useEthers, useEtherBalance, shortenAddress } from "@usedapp/core";
+import { useEthers, useEtherBalance, shortenIfAddress } from "@usedapp/core";
 import { Button } from "@mui/material";
 
 import { formatEtherToFixed } from "../utils";
@@ -7,10 +7,6 @@ import { formatEtherToFixed } from "../utils";
 export const ConnectWallet: FC = () => {
   const { activateBrowserWallet, account } = useEthers();
   const ethBalance = useEtherBalance(account);
-  let ethFormat;
-  if (ethBalance) {
-    ethFormat = formatEtherToFixed(ethBalance);
-  }
 
   return (
     <div style={{ position: "absolute", right: "15px" }}>
@@ -19,10 +15,10 @@ export const ConnectWallet: FC = () => {
           Connect wallet
         </Button>
       )}
-      {account && (
+      {ethBalance && (
         <div>
-          <div>{shortenAddress(account)}</div>
-          <div>{ethFormat} ETH</div>
+          <div>{shortenIfAddress(account)}</div>
+          <div>{formatEtherToFixed(ethBalance)} ETH</div>
         </div>
       )}
     </div>
