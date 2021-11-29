@@ -39,7 +39,7 @@ The project is split into two folders ([hardhat](hardhat) and [frontend](fronten
 
 ## Frontend app URL
 
-https://courses.consensys.net
+https://super-voice-9814.on.fleek.co/
 
 ## Other
 
