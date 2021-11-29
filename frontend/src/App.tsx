@@ -2,14 +2,8 @@ import { CSSProperties, FC } from "react";
 import { useEthers } from "@usedapp/core";
 import { Alert, Chip, Container, Divider, Stack } from "@mui/material";
 
-import { Header } from "./components/Header";
-import { CheckTicket } from "./components/CheckTicket";
-import { BuyTicket } from "./components/BuyTicket";
 import { useGetOwner } from "./hooks/useContractHooks";
-import { CancelTicket } from "./components/CancelTicket";
-import { TransferTicket } from "./components/TransferTicket";
-import { Withdraw } from "./components/Withdraw";
-import { ChangeZonePrice } from "./components/ChangeZonePrice";
+import { BuyTicket, CancelTicket, ChangeZonePrice, CheckTicket, Header, TransferTicket, Withdraw } from "./components";
 
 const appStyle: CSSProperties = {
   display: "flex",

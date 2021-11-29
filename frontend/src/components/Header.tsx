@@ -1,4 +1,5 @@
 import { CSSProperties, FC } from "react";
+
 import { ConnectWallet } from "./ConnectWallet";
 
 const style: CSSProperties = {

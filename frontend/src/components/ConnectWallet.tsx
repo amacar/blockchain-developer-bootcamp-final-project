@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { useEthers, useEtherBalance } from "@usedapp/core";
+import { useEthers, useEtherBalance, shortenAddress } from "@usedapp/core";
 import { Button } from "@mui/material";
 
 import { formatEtherToFixed } from "../utils";
@@ -21,9 +21,7 @@ export const ConnectWallet: FC = () => {
       )}
       {account && (
         <div>
-          <div>
-            {account.substr(0, 6)}...{account.substr(-6, 6)}
-          </div>
+          <div>{shortenAddress(account)}</div>
           <div>{ethFormat} ETH</div>
         </div>
       )}

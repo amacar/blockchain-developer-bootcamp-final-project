@@ -4,9 +4,10 @@ import { parseEther } from "@ethersproject/units";
 
 import { BoxItem } from "./BoxItem";
 import { Zone } from "../constants";
-import { useGetZonePrice, useSetZonePrice } from "../hooks/useContractHooks";
+import { useCustomContractFunction, useGetZonePrice, useSetZonePrice } from "../hooks/useContractHooks";
 import { ZoneSelect } from "./ZoneSelect";
 import { formatEtherToFixed } from "../utils";
+import { Toast } from "./Toast";
 
 const style = { marginRight: "5px" };
 
@@ -14,11 +15,12 @@ export const ChangeZonePrice: FC = () => {
   const [zone, setZone] = useState<Zone | string>("");
   const [newPrice, setNewPrice] = useState<string>("");
   const zonePrice = useGetZonePrice(zone as Zone);
-  const { zonePriceTx, setZonePrice } = useSetZonePrice();
+  const [tx, clearTx, setZonePrice] = useCustomContractFunction(useSetZonePrice);
 
   const handleChangeZonePrice = async () => {
     if (!newPrice || zone === "") return;
 
+    clearTx();
     await setZonePrice(parseEther(newPrice), zone as Zone);
   };
 
@@ -33,9 +35,10 @@ export const ChangeZonePrice: FC = () => {
         onChange={(e) => setNewPrice(e.target.value)}
         helperText={`Current price ${formatEtherToFixed(zonePrice, 18)} ETH`}
       />
-      <Button style={{ maxHeight: "56px" }} variant="contained" onClick={handleChangeZonePrice}>
+      <Button color="warning" style={{ maxHeight: "56px" }} variant="contained" onClick={handleChangeZonePrice}>
         Change zone price
       </Button>
+      <Toast tx={tx} />
     </BoxItem>
   );
 };

@@ -2,17 +2,19 @@ import { FC, useState } from "react";
 import { Button, TextField } from "@mui/material";
 
 import { BoxItem } from "./BoxItem";
-import { useCancelTicket } from "../hooks/useContractHooks";
+import { useCancelTicket, useCustomContractFunction } from "../hooks/useContractHooks";
+import { Toast } from "./Toast";
 
 const style = { marginRight: "5px" };
 
 export const CancelTicket: FC = () => {
   const [plate, setPlate] = useState<string>("");
-  const { cancelTicketTx, cancelTicket } = useCancelTicket();
+  const [tx, clearTx, cancelTicket] = useCustomContractFunction(useCancelTicket);
 
   const handleCancelTicket = async () => {
     if (!plate) return;
 
+    clearTx();
     await cancelTicket(plate);
   };
 
@@ -28,6 +30,7 @@ export const CancelTicket: FC = () => {
       <Button variant="contained" color="error" onClick={handleCancelTicket}>
         Cancel ticket
       </Button>
+      <Toast tx={tx} />
     </BoxItem>
   );
 };

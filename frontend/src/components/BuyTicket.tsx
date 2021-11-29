@@ -3,8 +3,9 @@ import { Button, TextField } from "@mui/material";
 
 import { BoxItem } from "./BoxItem";
 import { Zone } from "../constants";
-import { useBuyTicket, useGetZonePrice } from "../hooks/useContractHooks";
+import { useBuyTicket, useCustomContractFunction, useGetZonePrice } from "../hooks/useContractHooks";
 import { ZoneSelect } from "./ZoneSelect";
+import { Toast } from "./Toast";
 
 const style = { marginRight: "5px" };
 
@@ -14,11 +15,12 @@ export const BuyTicket: FC = () => {
   const [duration, setDuration] = useState<number>(60);
   const zonePrice = useGetZonePrice(zone as Zone);
   const totalPrice = zonePrice.mul(duration || 0);
-  const { buyTicketTx, buyTicket } = useBuyTicket();
+  const [tx, clearTx, buyTicket] = useCustomContractFunction(useBuyTicket);
 
   const handleBuyTicket = async () => {
     if (!plate || !duration || zone === "") return;
 
+    clearTx();
     await buyTicket(plate, duration, zone as Zone, { value: totalPrice });
   };
 
@@ -41,9 +43,10 @@ export const BuyTicket: FC = () => {
         inputProps={{ min: "1" }}
       />
       <ZoneSelect zone={zone} setZone={setZone} />
-      <Button variant="contained" onClick={handleBuyTicket}>
+      <Button variant="contained" color="secondary" onClick={handleBuyTicket}>
         Buy ticket
       </Button>
+      <Toast tx={tx} />
     </BoxItem>
   );
 };

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useContractCall, useContractFunction, TransactionStatus } from "@usedapp/core";
 import { Interface } from "@ethersproject/abi";
 import { Contract } from "@ethersproject/contracts";
@@ -7,7 +8,6 @@ import { abi } from "../Parking.json";
 import { Zone } from "../constants";
 
 const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS || "";
-console.log("ajmo", process.env);
 
 const contractInterface = new Interface(abi);
 const contract = new Contract(CONTRACT_ADDRESS, contractInterface);
@@ -27,12 +27,9 @@ export const useGetZonePrice = (zone: Zone): BigNumber => {
   return price || BigNumber.from(0);
 };
 
-export const useSetZonePrice = (): {
-  zonePriceTx: TransactionStatus;
-  setZonePrice: (price: BigNumber, zone: Zone) => Promise<void>;
-} => {
-  const { state: zonePriceTx, send: setZonePrice } = useContract("changeZonePrice");
-  return { zonePriceTx, setZonePrice };
+export const useSetZonePrice = (): [TransactionStatus, (price: BigNumber, zone: Zone) => Promise<void>] => {
+  const { state, send } = useContract("changeZonePrice");
+  return [state, send];
 };
 
 export const useGetTicketInfo = (plate: string): { expiration: number; zone: Zone } => {
@@ -40,34 +37,41 @@ export const useGetTicketInfo = (plate: string): { expiration: number; zone: Zon
   return { expiration: expiration ? expiration.toNumber() : undefined, zone };
 };
 
-export const useBuyTicket = (): {
-  buyTicketTx: TransactionStatus;
-  buyTicket: (plate: string, duration: number, zone: Zone, value: { value: BigNumber }) => Promise<void>;
-} => {
-  const { state: buyTicketTx, send: buyTicket } = useContract("buyTicket");
-  return { buyTicketTx, buyTicket };
+export const useBuyTicket = (): [
+  TransactionStatus,
+  (plate: string, duration: number, zone: Zone, value: { value: BigNumber }) => Promise<void>
+] => {
+  const { state, send } = useContract("buyTicket");
+  return [state, send];
 };
 
-export const useCancelTicket = (): {
-  cancelTicketTx: TransactionStatus;
-  cancelTicket: (plate: string) => Promise<void>;
-} => {
-  const { state: cancelTicketTx, send: cancelTicket } = useContract("cancelTicket");
-  return { cancelTicketTx, cancelTicket };
+export const useCancelTicket = (): [TransactionStatus, (plate: string) => Promise<void>] => {
+  const { state, send } = useContract("cancelTicket");
+  return [state, send];
 };
 
-export const useTransferTicket = (): {
-  transferTicketTx: TransactionStatus;
-  transferTicket: (oldPlate: string, newPlate: string, newOwner: string) => Promise<void>;
-} => {
-  const { state: transferTicketTx, send: transferTicket } = useContract("transferTicket");
-  return { transferTicketTx, transferTicket };
+export const useTransferTicket = (): [
+  TransactionStatus,
+  (oldPlate: string, newPlate: string, newOwner: string) => Promise<void>
+] => {
+  const { state, send } = useContract("transferTicket");
+  return [state, send];
 };
 
-export const useWithdraw = (): {
-  withdrawTx: TransactionStatus;
-  withdraw: (amount: BigNumber) => Promise<void>;
-} => {
-  const { state: withdrawTx, send: withdraw } = useContract("withdraw");
-  return { withdrawTx, withdraw };
+export type useWithdrawType = (amount: BigNumber) => Promise<void>;
+
+export const useWithdraw = (): [TransactionStatus, (amount: BigNumber) => Promise<void>] => {
+  const { state, send } = useContract("withdraw");
+  return [state, send];
+};
+
+export const useCustomContractFunction = (f: any): [TransactionStatus, () => void, any] => {
+  const [state, send] = f();
+  const [tx, setTx] = useState(state);
+
+  useEffect(() => {
+    setTx(state);
+  }, [state]);
+
+  return [tx, () => setTx({ status: "None" }), send];
 };
