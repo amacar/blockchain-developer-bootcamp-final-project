@@ -41,7 +41,13 @@ export const CheckTicket: FC = () => {
               setSearchPlate("");
             }}
           />
-          <Button variant="contained" onClick={() => setSearchPlate(plate)}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setSearchPlate("");
+              setSearchPlate(plate);
+            }}
+          >
             Get Info
           </Button>
         </div>
